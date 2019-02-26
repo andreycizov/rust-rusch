@@ -3,7 +3,7 @@ use nom::{named, alt, tag, recognize, tuple, many0, many1, do_parse, call, map};
 use super::root::*;
 use super::num::*;
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub enum Datum {
     Symbol(String),
     Bool(bool),

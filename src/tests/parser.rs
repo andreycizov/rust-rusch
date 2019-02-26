@@ -75,6 +75,11 @@ fn test_datum_lambda() {
     );
 
     assert_eq!(
+        datum(b"a-a\0"),
+        Ok((&b"\0"[..], Datum::Symbol("a-a".into())))
+    );
+
+    assert_eq!(
         datum(b"()\0"),
         Ok((&b"\0"[..], Datum::List(vec![])))
     );
@@ -97,6 +102,14 @@ fn test_datum_lambda() {
     assert_eq!(
         datum(b"(a b)"),
         Ok((&b""[..], Datum::List(vec![Datum::Symbol("a".into()), Datum::Symbol("b".into())])))
+    );
+
+    assert_eq!(
+        datum(b"'yes\0"),
+        Ok((&b"\0"[..], Datum::List(vec![
+            Datum::Symbol("quote".into()),
+            Datum::Symbol("yes".into())
+        ])))
     );
 
     assert_eq!(
@@ -137,5 +150,27 @@ fn test_datum_lambda() {
                  Datum::Symbol("...".into()),
              ]))
         )
+    );
+
+    assert_eq!(
+        datum(b"()"),
+        Ok((
+            &b""[..],
+            Datum::List(vec![
+            ])
+        ))
+    );
+
+    assert_eq!(
+        datum(b"(... (...))"),
+        Ok((
+            &b""[..],
+            Datum::List(vec![
+                Datum::Symbol("...".into()),
+                Datum::List(vec![
+                    Datum::Symbol("...".into()),
+                ])
+            ])
+        ))
     );
 }
