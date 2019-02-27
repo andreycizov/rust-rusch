@@ -143,27 +143,27 @@ impl Pattern {
                                    None => return None
                                }
                                PatternList::Wildcard(subpat) => {
-                                   match curr {
-                                       Some(x) => match subpat.cross(ellipsis, x) {
-                                           Some(ms) => {
-                                               matches.extend(ms);
-                                               curr = ys.next();
-                                           }
-                                           None => return None
-                                       }
-                                       None => return None
-                                   }
+//                                   match curr {
+//                                       Some(x) => match subpat.cross(ellipsis, x) {
+//                                           Some(ms) => {
+//                                               matches.extend(ms);
+//                                               curr = ys.next();
+//                                           }
+//                                           None => return None
+//                                       }
+//                                       None => return None
+//                                   }
 
                                    // ellipsis need to be redefined here
 
-                                   let mut ellipses: Vec<&Datum> = Vec::with_capacity(capa);
+                                   //let mut ellipses: Vec<&Datum> = Vec::with_capacity(capa);
 
                                    loop {
                                        match curr {
                                            Some(x) => match subpat.cross(ellipsis, x) {
                                                Some(ms) => {
                                                    matches.extend(ms);
-                                                   ellipses.push(x);
+                                                   //ellipses.push(x);
                                                    curr = ys.next();
                                                }
                                                None => break
@@ -172,9 +172,9 @@ impl Pattern {
                                        }
                                    }
 
-                                   let ellipses = Datum::List(ellipses.iter().map(|x| (**x).clone()).collect());
+                                   //let ellipses = Datum::List(ellipses.iter().map(|x| (**x).clone()).collect());
 
-                                   matches.push((ellipsis.clone(), ellipses));
+                                   //matches.push((ellipsis.clone(), ellipses));
                                }
                            }
                        }
@@ -276,11 +276,15 @@ impl Rules {
         }
     }
 
-    pub fn cross(&self, datum: &Datum) -> Option<Vec<(String, Datum)>> {
-        for (x, y) in &self.rules {
+//    fn interpolate(&self, vars: Vec<(String, Datum)>, body: &Datum) -> Datum {
+//        // interpolate a given body with the given variables.
+//    }
+
+    pub fn apply(&self, datum: &Datum) -> Option<Vec<(String, Datum)>> {
+        for (pattern, body) in &self.rules {
             // todo we need to cross the template too.
-            eprintln!("{:?} {:?}", x, y);
-            match x.cross(&self.ellipsis, datum) {
+            eprintln!("{:?} {:?}", pattern, body);
+            match pattern.cross(&self.ellipsis, datum) {
                 Some(x) => return Some(x),
                 None => continue
             }
@@ -299,7 +303,7 @@ pub fn eval_syntax_rules(transformer_spec: Datum, code: Datum) -> Result<Datum, 
 
     let sr = Rules::new(&transformer_spec)?;
 
-    eprintln!("{:?}", sr.cross(&code));
+    eprintln!("{:?}", sr.apply(&code));
 
     Ok(Datum::List(Vec::<Datum>::new()))
 }

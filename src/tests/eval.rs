@@ -33,7 +33,7 @@ fn test_eval_syntax_rule_000() {
 
 #[test]
 fn test_eval_syntax_rule_001() {
-    let rules = from_file("etc/scheme/my-or.scm").unwrap();
+    let rules = load_rule("etc/scheme/my-or.scm");
 
     assert_eq!(
         eval_syntax_rules(
@@ -41,7 +41,9 @@ fn test_eval_syntax_rule_001() {
             Datum::List(vec![
                 Datum::Symbol("my-or".into()),
                 Datum::Bool(true),
-                Datum::Num("asd".into())
+                Datum::Num("asd0".into()),
+                Datum::Num("asd1".into()),
+                Datum::Num("asd2".into()),
             ])
         ),
         Err(MacrosErr::NotASpec(2))

@@ -1,6 +1,5 @@
-(syntax-rules ()
-  ((my-or) #f)
-  ((my-or e) e)
-  ((my-or e1 e2 ...)
-   (let ((temp e1)) (if temptemp (my-or e2 ...))))
-  )
+(define-syntax or
+  (syntax-rules ()
+    ((or) #f)
+    ((or test) test)
+    ((or test1 test2 ...) (let ((x test1)) (if x x (or test2 ...))))))
