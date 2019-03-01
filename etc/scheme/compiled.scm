@@ -1,4 +1,16 @@
-#| every closure is a lambda |#
+#| independent of the call site, a definition clearly defines how to op must be called. |#
+
+(define
+ main
+ (lambda
+  (x . x)
+  ("abc"))
+)
+
+#| how do we return a closure (?). rather - how do we encode a closure |#
+
+
+#| a closure is a lambda with more than 0 free variables. |#
 
 (define
   closure_234656
@@ -12,5 +24,12 @@
     (i y z) (e f h)
     (3)))
 
-#| define an operation that is directly compiled to an op |#
-(define (nanop musings ()))
+(define
+  zzz_hugely
+ (lambda (a b c)
+  ())
+)
+
+#| nanop is a call to a direct microcode instruction |#
+(define musings (nanop ()))
+

@@ -9,7 +9,7 @@ pub enum MacrosErr {
 
 
 #[derive(Debug, PartialEq, Eq, Clone)]
-enum PatternList {
+enum ListPattern {
     Single(Pattern),
     Wildcard(Pattern),
 
@@ -23,7 +23,7 @@ enum Pattern {
     Literal(String),
     Symbol(String),
     Const(Datum),
-    List(Vec<PatternList>),
+    List(Vec<ListPattern>),
 }
 
 struct Rules {
@@ -48,7 +48,7 @@ impl Pattern {
                 }
             }
             Datum::List(its) => {
-                let mut rits: Vec<PatternList> = Vec::new();
+                let mut rits: Vec<ListPattern> = Vec::new();
                 let mut previous: Option<Pattern> = None;
 
                 for it in its {
@@ -73,35 +73,27 @@ impl Pattern {
 
                     if let Some(next) = next {
                         if let Some(previous) = previous {
-                            rits.push(PatternList::Single(previous));
+                            rits.push(ListPattern::Single(previous));
                         }
 
                         previous = Some(next);
                     } else if let Some(previous2) = previous {
-                        rits.push(PatternList::Wildcard(previous2));
+                        rits.push(ListPattern::Wildcard(previous2));
                         previous = None
                     }
                 }
 
                 if let Some(previous) = previous {
-                    rits.push(PatternList::Single(previous));
+                    rits.push(ListPattern::Single(previous));
                 }
 
                 Ok(Pattern::List(rits))
-//                match expression {
-//                    Datum::List(y) => {
-//                        let mut bindings: Vec<(String, Datum)> = Vec::new();
-//
-//                        /// todo we need to have a lookahead thing here in order to match them correctly.
-//                    }
-//                    _ => (false, vec![])
-//                }
             }
             _ => Ok(Pattern::Const(pattern.clone()))
         }
     }
 
-    pub fn cross(&self, ellipsis: &String, datum: &Datum) -> Option<Vec<(String, Datum)>> {
+    pub fn cross(&self, ellipsis: &String, datum: &Datum) -> Option<Vec<(Vec<usize>, String, Datum)>> {
         use Pattern::*;
         match self {
             Pattern::Underscore => Some(vec![]),
@@ -115,7 +107,7 @@ impl Pattern {
                 }
                 _ => None
             }
-            Pattern::Symbol(x) => { Some(vec![(x.clone(), datum.clone())]) },
+            Pattern::Symbol(x) => { Some(vec![(vec![], x.clone(), datum.clone())]) },
             Pattern::Const(x) => if x == datum {
                 Some(vec![])
             } else {
@@ -125,56 +117,50 @@ impl Pattern {
                match datum {
                    Datum::List(ys) => {
                        let capa = ys.len() + 5;
-                       let mut matches: Vec<(String, Datum)> = Vec::with_capacity(capa);
+                       let mut matches: Vec<(Vec<usize>, String, Datum)> = Vec::with_capacity(capa);
 
                        let mut ys = ys.iter();
                        let mut curr= ys.next();
 
-                       for x in xs {
-                           match x {
-                               PatternList::Single(subpat) => match curr {
+                       for lp in xs {
+                           match lp {
+                               ListPattern::Single(subpat) => match curr {
                                    Some(curr_some) => match subpat.cross(ellipsis, &curr_some) {
                                        Some(ms) => {
                                            matches.extend(ms);
+
                                            curr = ys.next();
                                        }
                                        None => return None
                                    }
                                    None => return None
                                }
-                               PatternList::Wildcard(subpat) => {
-//                                   match curr {
-//                                       Some(x) => match subpat.cross(ellipsis, x) {
-//                                           Some(ms) => {
-//                                               matches.extend(ms);
-//                                               curr = ys.next();
-//                                           }
-//                                           None => return None
-//                                       }
-//                                       None => return None
-//                                   }
+                               ListPattern::Wildcard(subpat) => {
+                                   // todo wildcard patterns will not properly match items
+                                   // todo of the same type coming after it.
 
-                                   // ellipsis need to be redefined here
-
-                                   //let mut ellipses: Vec<&Datum> = Vec::with_capacity(capa);
+                                   let mut wi = 0;
 
                                    loop {
                                        match curr {
                                            Some(x) => match subpat.cross(ellipsis, x) {
                                                Some(ms) => {
-                                                   matches.extend(ms);
-                                                   //ellipses.push(x);
+                                                   for (mx, my, mz) in ms {
+                                                       let mut nmx = Vec::with_capacity(mx.len() + 1);
+                                                       nmx.push(wi);
+                                                       nmx.extend(mx);
+
+                                                       matches.push((nmx, my, mz));
+                                                   }
                                                    curr = ys.next();
                                                }
                                                None => break
                                            }
                                            None => break
                                        }
+
+                                       wi += 1;
                                    }
-
-                                   //let ellipses = Datum::List(ellipses.iter().map(|x| (**x).clone()).collect());
-
-                                   //matches.push((ellipsis.clone(), ellipses));
                                }
                            }
                        }
@@ -259,6 +245,10 @@ impl Rules {
                             z => z
                         })?;
 
+                        // template must be compiled, too.
+                        // because template is an expansion.
+                        // and if we compile it we then only need to take the variables somehow.
+
                         Ok((pattern, template.clone()))
                     } else {
                         return Err(NotASpec2(8, i));
@@ -280,10 +270,24 @@ impl Rules {
 //        // interpolate a given body with the given variables.
 //    }
 
-    pub fn apply(&self, datum: &Datum) -> Option<Vec<(String, Datum)>> {
+    pub fn apply(&self, datum: &Datum) -> Option<Vec<(Vec<usize>, String, Datum)>> {
+        // (a ...)
+        // ((b ...) ...)
+        //
+
+        /// case-matches against the patterns defined by the macro.
+
         for (pattern, body) in &self.rules {
             // todo we need to cross the template too.
-            eprintln!("{:?} {:?}", pattern, body);
+
+            let body_pat = Pattern::new(&self.ellipsis, &self.literals, body);
+
+
+            eprintln!("{:?}", pattern);
+            eprintln!("{:?}", body);
+            eprintln!("{:?}", body_pat);
+            eprintln!("__________________________________________________");
+            // todo spread backs in and out
             match pattern.cross(&self.ellipsis, datum) {
                 Some(x) => return Some(x),
                 None => continue

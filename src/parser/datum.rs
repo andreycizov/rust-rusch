@@ -3,9 +3,15 @@ use nom::{named, alt, tag, recognize, tuple, many0, many1, do_parse, call, map};
 use super::root::*;
 use super::num::*;
 
+/// TODO: A) convert all enum members to separate structs and return them appropriately from every parser
+/// TODO: B) [123]
+
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum Datum {
+    /// todo [123] symbol needs a separate tag of it's origin.
     Symbol(String),
+    /// the usize argument allows for expanded macros to be expanded in a separate namespace.
+    //Symbol(String, usize),
     Bool(bool),
     Char(String),
     Str(String),

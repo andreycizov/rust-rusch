@@ -50,6 +50,36 @@ fn test_eval_syntax_rule_001() {
     );
 }
 
+#[test]
+fn test_eval_syntax_rule_002() {
+    let rules = load_rule("etc/scheme/my-subpat.scm");
+
+    assert_eq!(
+        eval_syntax_rules(
+            rules,
+            Datum::List(vec![
+                Datum::Symbol("my-or".into()),
+                Datum::List(vec![
+                    Datum::Num("a1".into()),
+                    Datum::Num("a2".into()),
+                    Datum::Num("a3".into()),
+                ]),
+                Datum::List(vec![
+                    Datum::Num("b1".into()),
+                    Datum::Num("b2".into()),
+                    Datum::Num("b3".into()),
+                ]),
+                Datum::List(vec![
+                    Datum::Num("c1".into()),
+                    Datum::Num("c2".into()),
+                    Datum::Num("c3".into()),
+                ]),
+            ])
+        ),
+        Err(MacrosErr::NotASpec(2))
+    );
+}
+
 fn load_rule(filename: &str) -> Datum {
     let r=  from_file(filename).unwrap();
 
