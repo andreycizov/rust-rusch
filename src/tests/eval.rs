@@ -7,26 +7,26 @@ use crate::parser::util::from_file;
 fn test_eval_syntax_rule_000() {
     assert_eq!(
         eval_syntax_rules(
-            Datum::Str("asd".into()),
-            Datum::Str("asd".into()),
+            &Datum::Str("asd".into()),
+            &Datum::Str("asd".into()),
         ),
-        Err(MacrosErr::NotASpec(0))
+        Err(EvalErr::Compile(CompileErr::NotASpec(0)))
     );
 
     assert_eq!(
         eval_syntax_rules(
-            Datum::List(vec![Datum::Str("syntax_rules".into())]),
-            Datum::Str("asd".into()),
+            &Datum::List(vec![Datum::Str("syntax_rules".into())]),
+            &Datum::Str("asd".into()),
         ),
-        Err(MacrosErr::NotASpec(2))
+        Err(EvalErr::Compile(CompileErr::NotASpec(2)))
     );
 
     assert_eq!(
         eval_syntax_rules(
-            Datum::List(vec![Datum::Symbol("syntax_rulesa".into())]),
-            Datum::Str("asd".into()),
+            &Datum::List(vec![Datum::Symbol("syntax_rulesa".into())]),
+            &Datum::Str("asd".into()),
         ),
-        Err(MacrosErr::NotASpec(3))
+        Err(EvalErr::Compile(CompileErr::NotASpec(3)))
     );
 }
 
@@ -37,16 +37,16 @@ fn test_eval_syntax_rule_001() {
 
     assert_eq!(
         eval_syntax_rules(
-            rules,
-            Datum::List(vec![
-                Datum::Symbol("my-or".into()),
+            &rules,
+            &Datum::List(vec![
+                Datum::Symbol("or".into()),
                 Datum::Bool(true),
                 Datum::Num("asd0".into()),
                 Datum::Num("asd1".into()),
                 Datum::Num("asd2".into()),
             ])
         ),
-        Err(MacrosErr::NotASpec(2))
+        Err(EvalErr::Compile(CompileErr::NotASpec(2)))
     );
 }
 
@@ -56,8 +56,8 @@ fn test_eval_syntax_rule_002() {
 
     assert_eq!(
         eval_syntax_rules(
-            rules,
-            Datum::List(vec![
+            &rules,
+            &Datum::List(vec![
                 Datum::Symbol("my-or".into()),
                 Datum::List(vec![
                     Datum::Num("a1".into()),
@@ -76,7 +76,32 @@ fn test_eval_syntax_rule_002() {
                 ]),
             ])
         ),
-        Err(MacrosErr::NotASpec(2))
+        Err(EvalErr::Compile(CompileErr::NotASpec(2)))
+    );
+}
+
+#[test]
+fn test_eval_syntax_rule_003() {
+    let rules = load_rule("etc/scheme/tests/cross.scm");
+    let ai = from_file("etc/scheme/tests/a-in.scm").unwrap();
+    let ao = from_file("etc/scheme/tests/a-out.scm").unwrap();
+    let bi = from_file("etc/scheme/tests/b-in.scm").unwrap();
+    let bo = from_file("etc/scheme/tests/b-out.scm").unwrap();
+
+    assert_eq!(
+        Ok(ao),
+        eval_syntax_rules(
+            &rules,
+            &ai
+        )
+    );
+
+    assert_eq!(
+        Ok(bo),
+        eval_syntax_rules(
+            &rules,
+            &bi
+        )
     );
 }
 
@@ -111,13 +136,13 @@ fn test_eval_syntax_rule_derived_cond() {
 
     assert_eq!(
         eval_syntax_rules(
-            rules,
-            Datum::List(vec![
+            &rules,
+            &Datum::List(vec![
                 Datum::Symbol("my-or".into()),
                 Datum::Bool(true),
                 Datum::Num("asd".into())
             ])
         ),
-        Err(MacrosErr::NotASpec(2))
+        Err(EvalErr::Compile(CompileErr::NotASpec(2)))
     );
 }

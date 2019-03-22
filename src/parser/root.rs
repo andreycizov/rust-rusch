@@ -165,7 +165,7 @@ named!(
 );
 
 named!(
-    whitespace,
+    pub whitespace,
     alt_complete!(
         intraline_whitespace |
         line_ending

@@ -1,4 +1,5 @@
 use crate::parser::datum::{datum, Datum};
+use crate::parser::root::{whitespace};
 use crate::parser::util::ParserErr::CouldNotFullyParse;
 use std::fs::File;
 
@@ -22,7 +23,18 @@ pub fn from_string(code: &String) -> Result<Datum, ParserErr> {
             if left == b"\0" {
                 Ok(res)
             } else {
-                Err(CouldNotFullyParse(length - left.len()))
+                match whitespace(left) {
+                    Ok((left_ws, _)) => {
+                        if left_ws == b"\0" {
+                            Ok(res)
+                        } else {
+                            Err(CouldNotFullyParse(length - left.len()))
+                        }
+                    }
+                    Err(_) => {
+                        Err(CouldNotFullyParse(length - left.len()))
+                    }
+                }
             }
         }
         Err(err) => {
