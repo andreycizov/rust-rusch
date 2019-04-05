@@ -23,11 +23,16 @@ stack, but rather allocated on the heap.
 
 ### Priority
 
-- Implement a non-recursive macro substitutor: given a macro definition `my-macro` and
-   a call site of that macro: `(my-macro argA argB)`, resolve that with a single pass of macro invocation.
+- ~~Implement a non-recursive macro substitutor: given a macro definition `my-macro` and
+   a call site of that macro: `(my-macro argA argB)`, resolve that with a single pass of macro invocation.~~
+   (implemented in [rusch.eval.macros](./src/eval/macros.rs))
 - Implement a [CPS transformer](https://en.wikipedia.org/wiki/Continuation-passing_style) for all call sites of the program. 
     1. at this step we're planning to substitute all macros
 - Implement a [lambda lifter](https://en.wikipedia.org/wiki/Lambda_lifting).
+- Implement type information pass.
+    1. Support strings.
+    2. Support function (closure) pointers.
+    3. Aggressively raise errors for anything else. 
 
 ## Usage
 
